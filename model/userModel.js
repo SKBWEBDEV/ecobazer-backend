@@ -45,7 +45,7 @@ const userModel = new Schema ({
   email:{
     type:String
   },
-  copanyName:{
+  companyName:{
     type:String
   },
   street:{

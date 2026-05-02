@@ -13,4 +13,4 @@ const secureMiddleWare = (req,res,next)=> {
 });
 }
 
-module.exports = secureMiddleWare
+module.exports = secureMiddleWare 
