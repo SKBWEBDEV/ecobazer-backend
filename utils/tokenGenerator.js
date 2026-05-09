@@ -9,4 +9,4 @@ let tokenGenerator = (data,secret,expire)=> {
 
 }
 
-module.exports = tokenGenerator
+module.exports = {tokenGenerator}

@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken')
 let registationControler = async (req, res) => {
   const { email, password, confirmPassword, terms } = req.body;
 
-  let existingUser = await User.findOne({emai:email});
+  let existingUser = await User.findOne({email:email});
      
   if (existingUser) {
   return  res.send({message:"user already exists"})  
@@ -62,7 +62,9 @@ const hash = bcrypt.hashSync(password, 10);
 
 
 let loginControler = async(req,res) => {
-  let existingUser = await User.findOne({emai:email});
+  const { email, password } = req.body;
+
+  let existingUser = await User.findOne({email:email});
      
   if (!existingUser) {
   return res.send({message:"user not found"})  
@@ -70,7 +72,7 @@ let loginControler = async(req,res) => {
 
   emptyFieldValidation(res, email, password);
 
- let pass =  bcrypt.compareSync(password, existingUser.hash);
+ let pass =  bcrypt.compareSync(password, existingUser.password);
  if (!pass) {
   res.send({message:"invalid credential"})
  }else{
@@ -81,8 +83,8 @@ let loginControler = async(req,res) => {
 
 
 let forgotPasswordControler = async(req,res)=> {
-  let {emai} = req.body
-  let user = await User.findOne({emai:email});
+  let {email} = req.body
+  let user = await User.findOne({email:email});
   
   emptyFieldValidation(res, email);
 
@@ -99,13 +101,16 @@ let forgotPasswordControler = async(req,res)=> {
     "1d",
   );
 
-  resetPasswordEmail(token,email)
+  resetPasswordEmail(email,token)
 
   res.send({message:"Please check your email"})
 
 }
 
 let resetpasswordControler = async (req, res) => {
+
+  // let user = await User.findOne({email:email});
+
   let { newPassword, confirmPassword } = req.body;
   if (newPassword !== confirmPassword) {
     return res.send({ message: "ConfirmPassword not match" });
@@ -113,18 +118,24 @@ let resetpasswordControler = async (req, res) => {
 
   let { token } = req.params;
 
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET,async function (err, decoded) {
+    console.log(decoded);
+    
     if (err) {
       res.send({ message: "Unauthorized" });
     } else {
       const hash = bcrypt.hashSync(newPassword, 10);
+    const userData = await User.findOneAndUpdate(
+    { _id: decoded.id },
+    { password: hash },
+    {new:true}
+  );
     }
+  
   });
 
-  const userData = await User.findOne(
-    { _id: decoded.id },
-    { password: newPassword },
-  );
+
+// console.log(userData);
 
   res.send({ message: "password updated" });
 };
@@ -145,13 +156,36 @@ let resendVerifycationEmailControler = async(req,res)=> {
     "1d",
   );
 
-  mailVerifycation(token,email)
+  mailVerifycation(email,token)
 
   res.send({message:"Check your email varifycation"})
 
 }
 
 
+let verifyemailControler = async(req,res)=> {
+  const {token} = req.params
+
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, async function(err,decoded){
+    if (err) {
+      res.send({message:"Unauthorized"})
+    }else{
+      const suerId = decoded.id
+      let findUser =await User.findById(suerId)
+
+      if (findUser.isVeryfi) {
+        return res.send({message:"user already exist"})
+      }else{
+        findUser.isVeryfi = true
+        findUser.save()
+        res.send({message:"email verified successfully"})
+      }
+    }
+  })
+
+}
 
 
-module.exports = { registationControler,loginControler,forgotPasswordControler,resendVerifycationEmailControler };
+
+
+module.exports = { registationControler,loginControler,forgotPasswordControler,resetpasswordControler,resendVerifycationEmailControler, verifyemailControler};
