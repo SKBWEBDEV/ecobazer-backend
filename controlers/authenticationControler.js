@@ -143,7 +143,7 @@ let resetpasswordControler = async (req, res) => {
 
 let resendVerifycationEmailControler = async(req,res)=> {
 
-  let {emai} = req.body
+  let {email} = req.body
 
   let user = await User.findOne({email:email})
 
