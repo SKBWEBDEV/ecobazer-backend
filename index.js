@@ -7,7 +7,14 @@ const { registationControler, loginControler, forgotPasswordControler, resetpass
 require("./controlers/authenticationControler");
 
 const { rateLimit } = require ('express-rate-limit');
+
+//controlers
 const { allUserControler, singleUserControler, deleteUserControler, updateUserControler } = require("./controlers/userControler");
+
+//product
+const { allPrduct, singleProduct, deleteProduct, updateProduct } = require("./controlers/productControler");
+
+
 
 const limiter = rateLimit({
 	windowMs: 15 * 60 * 1000, 
@@ -70,6 +77,11 @@ app.post("/verifyemail/:token",limiter6,verifyemailControler);
 
 
 //product create
+app.get("/allporduct", allPrduct)
+app.get("/singleProduct/:id", singleProduct)
+app.delete("/product/:id", deleteProduct)
+app.put("/product/:id", updateProduct)
+
 
 
 //order management
