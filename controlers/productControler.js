@@ -31,7 +31,7 @@ await product.save()
 
 res.json({
   success:true,
-  message:"Porduct Created"
+  message:"product Created"
 })
 
 }
@@ -72,7 +72,7 @@ const updateProduct = async(req,res)=> {
   let updateProduct = await Product.findByIdAndUpdate(id);
    res.send({
     success: true,
-    message: "Product deleted successfully"
+    message: "Product update successfully"
   });
 }
 

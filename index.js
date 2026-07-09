@@ -3,6 +3,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const dbConection = require("./config/dbCoection");
+const axios = require('axios')
 const { registationControler, loginControler, forgotPasswordControler, resetpasswordControler,resendVerifycationEmailControler, verifyemailControler } = 
 require("./controlers/authenticationControler");
 
@@ -12,7 +13,11 @@ const { rateLimit } = require ('express-rate-limit');
 const { allUserControler, singleUserControler, deleteUserControler, updateUserControler } = require("./controlers/userControler");
 
 //product
-const { allPrduct, singleProduct, deleteProduct, updateProduct } = require("./controlers/productControler");
+const { allPrduct, singleProduct, deleteProduct, updateProduct, createProductController } = require("./controlers/productControler");
+const { createCart, proDelete, increDecre, getCart } = require("./controlers/cartControler");
+const { paymentControler } = require("./controlers/paymentControler");
+
+
 
 
 
@@ -77,14 +82,52 @@ app.post("/verifyemail/:token",limiter6,verifyemailControler);
 
 
 //product create
+app.post("/createproduct", createProductController)
 app.get("/allporduct", allPrduct)
 app.get("/singleProduct/:id", singleProduct)
 app.delete("/product/:id", deleteProduct)
 app.put("/product/:id", updateProduct)
 
 
+//payment
+app.post('/payment',async function(req,res){
+
+	const asd = req.body
+	console.log(asd);
+	
+
+	let data = await axios.post('https://sandbox.aamarpay.com/jsonpost.php', {
+			
+      store_id: "aamarpaytest",
+      signature_key: "dbb74894e82415a2f7ff0ec3a97e4183",
+			...req.body,
+      tran_id: Date.now(),
+      currency: "BDT",
+      success_url: "https://example.com/success.php",
+      fail_url: "https://example.com/fail.php",
+      cancel_url: "https://example.com/cancel.php",
+      desc: "Lend Money",
+      type: "json"
+
+	})
+
+	console.log(data);
+	
+	res.send(data.data)
+	
+})
+
+
+//Cart management
+  app.post('/cart/create', createCart)                   
+  app.post('/cart/update/:id', increDecre)                   
+  // app.post('/cart/update/:id', updateProduct)                   
+  app.get('/cart/:userId', getCart)                   
+  app.delete('/cart/:id', proDelete)                   
+
 
 //order management
+app.post("/paymentgetway",paymentControler)
 
 
 //user management
