@@ -1,11 +1,15 @@
+const emptyFieldValidation = (...fields) => {
+
+  const isEmpty = fields.some(
+    field => field === undefined || field === null || field === ""
+  );
 
 
-const emptyFieldValidation = (res,...fields)=> {
-  console.log(fields.includes(undefined));
-  
-    if (fields.includes(undefined) || fields.includes('')) {
-    return res.send({ message: "All fields are required." });
-  }
-}
+  return isEmpty;
 
-module.exports = {emptyFieldValidation}
+};
+
+
+module.exports = {
+  emptyFieldValidation
+};

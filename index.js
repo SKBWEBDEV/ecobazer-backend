@@ -1,143 +1,269 @@
 require("dotenv").config();
+
+console.log("INDEX STARTED");
+
 const express = require("express");
-const app = express();
 const cors = require("cors");
+const { rateLimit } = require("express-rate-limit");
+
+const app = express();
+
 const dbConection = require("./config/dbCoection");
-const axios = require('axios')
-const { registationControler, loginControler, forgotPasswordControler, resetpasswordControler,resendVerifycationEmailControler, verifyemailControler } = 
-require("./controlers/authenticationControler");
 
-const { rateLimit } = require ('express-rate-limit');
+const orderRoutes = require("./routes/orderRoutes");
+const adminOrderRoutes = require("./routes/adminOrderRoutes");
 
-//controlers
-const { allUserControler, singleUserControler, deleteUserControler, updateUserControler } = require("./controlers/userControler");
+const secureMiddleWare = require("./middleware/secureMiddleWare");
 
-//product
-const { allPrduct, singleProduct, deleteProduct, updateProduct, createProductController } = require("./controlers/productControler");
-const { createCart, proDelete, increDecre, getCart } = require("./controlers/cartControler");
-const { paymentControler } = require("./controlers/paymentControler");
+// Controllers
+
+const {
+  registationControler,
+  loginControler,
+  forgotPasswordControler,
+  resetpasswordControler,
+  resendVerifycationEmailControler,
+  verifyemailControler,
+} = require("./controlers/authenticationControler");
 
 
+const {
+  allUserControler,
+  singleUserControler,
+  deleteUserControler,
+  updateUserControler,
+} = require("./controlers/userControler");
 
 
+const {
+  createProductController,
+  allPrduct,
+  singleProduct,
+  deleteProduct,
+  updateProduct,
+} = require("./controlers/productControler");
+
+
+const {
+  createCart,
+  proDelete,
+  increDecre,
+  getCart,
+} = require("./controlers/cartControler");
+
+
+const {
+  paymentControler,
+  paymentSuccess,
+} = require("./controlers/paymentControler");
+
+
+// Rate Limit
 
 const limiter = rateLimit({
-	windowMs: 15 * 60 * 1000, 
-	limit: 5, 
-	standardHeaders: 'draft-8', 
-	legacyHeaders: false, 
-	ipv6Subnet: 56, 
-})
-
-const limiter2 = rateLimit({
-	windowMs: 15 * 60 * 1000, 
-	limit: 5, 
-	standardHeaders: 'draft-8', 
-	legacyHeaders: false, 
-	ipv6Subnet: 56, 
-})
-const limiter3 = rateLimit({
-	windowMs: 15 * 60 * 1000, 
-	limit: 10, 
-	standardHeaders: 'draft-8', 
-	legacyHeaders: false, 
-	ipv6Subnet: 56, 
-})
-const limiter4 = rateLimit({
-	windowMs: 15 * 60 * 1000, 
-	limit: 10, 
-	standardHeaders: 'draft-8', 
-	legacyHeaders: false, 
-	ipv6Subnet: 56, 
-})
-const limiter5 = rateLimit({
-	windowMs: 15 * 60 * 1000, 
-	limit: 10, 
-	standardHeaders: 'draft-8', 
-	legacyHeaders: false, 
-	ipv6Subnet: 56, 
-})
-const limiter6 = rateLimit({
-	windowMs: 15 * 60 * 1000, 
-	limit: 10, 
-	standardHeaders: 'draft-8', 
-	legacyHeaders: false, 
-	ipv6Subnet: 56, 
-})
-
-
-//middleware
-app.use(express.json());
-app.use(cors());
-app.use(limiter)
-//database
-dbConection();
-
-app.post("/registation",limiter,registationControler);
-app.post("/login",limiter2,loginControler);
-app.post("/forgotepassword",limiter3,forgotPasswordControler);
-app.post("/resetpassword/:token",limiter4,resetpasswordControler);
-app.post("/resendverifycationemail",limiter5,resendVerifycationEmailControler);
-app.post("/verifyemail/:token",limiter6,verifyemailControler);
-
-
-//product create
-app.post("/createproduct", createProductController)
-app.get("/allporduct", allPrduct)
-app.get("/singleProduct/:id", singleProduct)
-app.delete("/product/:id", deleteProduct)
-app.put("/product/:id", updateProduct)
-
-
-//payment
-app.post('/payment',async function(req,res){
-
-	const asd = req.body
-	console.log(asd);
-	
-
-	let data = await axios.post('https://sandbox.aamarpay.com/jsonpost.php', {
-			
-      store_id: "aamarpaytest",
-      signature_key: "dbb74894e82415a2f7ff0ec3a97e4183",
-			...req.body,
-      tran_id: Date.now(),
-      currency: "BDT",
-      success_url: "https://example.com/success.php",
-      fail_url: "https://example.com/fail.php",
-      cancel_url: "https://example.com/cancel.php",
-      desc: "Lend Money",
-      type: "json"
-
-	})
-
-	console.log(data);
-	
-	res.send(data.data)
-	
-})
-
-
-//Cart management
-  app.post('/cart/create', createCart)                   
-  app.post('/cart/update/:id', increDecre)                   
-  // app.post('/cart/update/:id', updateProduct)                   
-  app.get('/cart/:userId', getCart)                   
-  app.delete('/cart/:id', proDelete)                   
-
-
-//order management
-app.post("/paymentgetway",paymentControler)
-
-
-//user management
-app.get("/alluser",allUserControler);
-app.get("/singleuser/:id",singleUserControler);
-app.delete("/deleteuser/:id",deleteUserControler);
-app.post("/updateuser/:id",updateUserControler);
-
-const port = process.env.PORT || 8000;
-
-app.listen(port, () => {
-  console.log(`server running on ${port}`);
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
 });
+
+
+// Middleware
+
+app.use(express.json());
+
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true,
+  })
+);
+
+app.use(limiter);
+
+
+// ================= AUTH =================
+
+app.post("/register", registationControler);
+
+app.post("/login", loginControler);
+
+app.post("/forgot-password", forgotPasswordControler);
+
+app.post("/reset-password/:token", resetpasswordControler);
+
+app.post("/resend-verification", resendVerifycationEmailControler);
+
+app.post("/verify-email/:token", verifyemailControler);
+
+
+// ================= PRODUCT =================
+
+app.post(
+  "/products",
+  secureMiddleWare,
+  createProductController
+);
+
+app.get(
+  "/products",
+  allPrduct
+);
+
+app.get(
+  "/products/:id",
+  singleProduct
+);
+
+app.put(
+  "/products/:id",
+  secureMiddleWare,
+  updateProduct
+);
+
+app.delete(
+  "/products/:id",
+  secureMiddleWare,
+  deleteProduct
+);
+
+
+// ================= CART =================
+
+app.post(
+  "/cart",
+  createCart
+);
+
+app.post(
+  "/cart/update/:id",
+  increDecre
+);
+
+app.get(
+  "/cart/:userId",
+  getCart
+);
+
+app.delete(
+  "/cart/:id",
+  proDelete
+);
+
+
+// ================= PAYMENT =================
+
+app.post(
+  "/payment",
+  secureMiddleWare,
+  paymentControler
+);
+
+
+app.post(
+  "/payment/success",
+  secureMiddleWare,
+  paymentSuccess
+);
+
+
+// ================= USER =================
+
+app.get(
+  "/users",
+  secureMiddleWare,
+  allUserControler
+);
+
+
+app.get(
+  "/users/:id",
+  secureMiddleWare,
+  singleUserControler
+);
+
+
+app.put(
+  "/users/:id",
+  secureMiddleWare,
+  updateUserControler
+);
+
+
+app.delete(
+  "/users/:id",
+  secureMiddleWare,
+  deleteUserControler
+);
+
+
+// ================= ORDERS =================
+
+app.use(
+  "/api/orders",
+  orderRoutes
+);
+
+
+app.use(
+  "/api/admin/orders",
+  adminOrderRoutes
+);
+
+
+// ================= TEST =================
+
+app.get("/", (req, res) => {
+
+  res.json({
+    success: true,
+    message: "EcoBazer API Running",
+  });
+
+});
+
+
+// ================= ERROR =================
+
+app.use((err, req, res, next) => {
+
+  console.log(err);
+
+  res.status(500).json({
+    success:false,
+    message: err.message || "Server Error",
+  });
+
+});
+
+
+// ================= SERVER =================
+
+const PORT = process.env.PORT || 8000;
+
+
+const startServer = async () => {
+
+  try {
+
+    await dbConection();
+
+    app.listen(PORT, () => {
+
+      console.log(`Server running on ${PORT}`);
+
+    });
+
+
+  } catch(error){
+
+    console.log(error.message);
+
+    process.exit(1);
+
+  }
+
+};
+
+
+startServer();

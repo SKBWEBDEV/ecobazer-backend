@@ -1,16 +1,43 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
-const secureMiddleWare = (req,res,next)=> {
-  let token = req.headers.authorization
-  // let data = jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)
+const secureMiddleWare = (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
 
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded) {
-  if (err) {
-    res.send({message:"Unauthorized"})
-  }else{
-    next()
+    if (!authHeader) {
+      return res.status(401).send({
+        success: false,
+        message: "Unauthorized: Token missing",
+      });
+    }
+
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : authHeader;
+
+    jwt.verify(
+      token,
+      process.env.ACCESS_TOKEN_SECRET,
+      (err, decoded) => {
+        if (err) {
+          return res.status(401).send({
+            success: false,
+            message: "Unauthorized: Invalid token",
+          });
+        }
+
+        req.user = decoded;
+
+        next();
+      }
+    );
+
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
   }
-});
-}
+};
 
-module.exports = secureMiddleWare 
+module.exports = secureMiddleWare;

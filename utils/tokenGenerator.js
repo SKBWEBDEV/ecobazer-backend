@@ -1,12 +1,36 @@
 const jwt = require("jsonwebtoken");
 
-let tokenGenerator = (data,secret,expire)=> {
-  let token = jwt.sign(data,secret,{
-    expiresIn:expire
-  })
 
-  return token
+const tokenGenerator = (data, secret, expire)=>{
+
+
+if(!secret){
+
+throw new Error(
+"JWT secret missing"
+);
 
 }
 
-module.exports = {tokenGenerator}
+
+
+return jwt.sign(
+
+data,
+
+secret,
+
+{
+expiresIn:expire
+}
+
+);
+
+
+};
+
+
+
+module.exports={
+tokenGenerator
+};

@@ -1,70 +1,107 @@
-const mongoose = require('mongoose')
-const {Schema} = mongoose
+const mongoose = require("mongoose");
 
-const userModel = new Schema ({
-  firsrtName:{
-    type:String
+const { Schema } = mongoose;
+
+
+const userSchema = new Schema({
+
+  firstName:{
+    type:String,
+    trim:true
   },
-  lastNsme:{
-    type:String
+
+  lastName:{
+    type:String,
+    trim:true
   },
+
+
   email:{
-    type:String
+    type:String,
+    required:true,
+    unique:true,
+    lowercase:true,
+    trim:true
   },
+
+
   password:{
-    type:String
+    type:String,
+    required:true
   },
+
+
   phoneNumber:{
     type:String
   },
+
+
   terms:{
-    type:Boolean
-  },
-  profile:{
-    type:String
-  },
-  isVeryfi:{
     type:Boolean,
     default:false
   },
+
+
+  profile:{
+    type:String,
+    default:""
+  },
+
+
+  isVerify:{
+    type:Boolean,
+    default:false
+  },
+
+
   role:{
     type:String,
-    enum:["admin","user","editor","vendor"]
+    enum:[
+      "admin",
+      "user",
+      "editor",
+      "vendor"
+    ],
+    default:"user"
   },
+
+
   isHold:{
     type:Boolean,
     default:false
   },
-  billingAddres:{
-    firsrtName:{
-    type:String
-  },
-  lastNsme:{
-    type:String
-  },
-  email:{
-    type:String
-  },
-  companyName:{
-    type:String
-  },
-  street:{
-    type:String
-  },
-  state:{
-    type:String
-  },
-  zipCode:{
-    type:String
-  },
-  phone:{
-    type:String
-  },
-  country:{
-    type:String
-  }
+
+
+  billingAddress:{
+
+    firstName:String,
+
+    lastName:String,
+
+    email:String,
+
+    companyName:String,
+
+    street:String,
+
+    state:String,
+
+    zipCode:String,
+
+    phone:String,
+
+    country:String
+
   }
 
-})
 
-module.exports = mongoose.model('User',userModel)
+},
+{
+ timestamps:true
+});
+
+
+module.exports = mongoose.model(
+"User",
+userSchema
+);

@@ -1,41 +1,260 @@
-const User = require('../model/userModel')
-
-let allUserControler = async(req,res)=> {
-
-  const userData = await User.find({})
-  res.send({
-    message:"All user data",
-    userData
-  })
-}
-
-let singleUserControler = async(req,res)=> {
-
-  let {id}=req.params
-
-  const userData = await User.findById({id})
-  res.send({
-    message:`${userData.$assertPopulated.email} data`,
-    userData
-  })
-}
+const User = require("../model/userModel");
 
 
-let deleteUserControler = async (req,res)=> {
-  let {id} = req.params
-  let userData = await User.findByIdAndDelete({id})
-  res.send({
-    message:"user delete",
-  })
-}
+
+// Get all users
+
+const allUserControler = async (req, res) => {
+
+  try {
+
+    const userData = await User.find({});
 
 
-let updateUserControler = async (req,res)=> {
-  let {id} = req.params
-  let userData = await User.findByIdAndUpdate({_id:id},req.body,{new:true})
-  res.send({
-    message:"user updated",
-  })
-}
+    res.status(200).send({
 
-module.exports = {allUserControler,singleUserControler,deleteUserControler,updateUserControler}
+      success: true,
+
+      message: "All user data",
+
+      userData
+
+    });
+
+
+  } catch (error) {
+
+
+    res.status(500).send({
+
+      success: false,
+
+      message: error.message
+
+    });
+
+
+  }
+
+};
+
+
+
+
+
+
+// Get single user
+
+const singleUserControler = async (req, res) => {
+
+  try {
+
+
+    const { id } = req.params;
+
+
+    const userData = await User.findById(id);
+
+
+
+    if (!userData) {
+
+      return res.status(404).send({
+
+        success: false,
+
+        message: "User not found"
+
+      });
+
+    }
+
+
+
+    res.status(200).send({
+
+      success: true,
+
+      message: "User data",
+
+      userData
+
+    });
+
+
+
+  } catch (error) {
+
+
+    res.status(500).send({
+
+      success: false,
+
+      message: error.message
+
+    });
+
+
+  }
+
+};
+
+
+
+
+
+
+
+
+// Delete user
+
+const deleteUserControler = async (req, res) => {
+
+
+  try {
+
+
+    const { id } = req.params;
+
+
+
+    const userData = await User.findByIdAndDelete(id);
+
+
+
+    if (!userData) {
+
+      return res.status(404).send({
+
+        success:false,
+
+        message:"User not found"
+
+      });
+
+    }
+
+
+
+    res.status(200).send({
+
+      success:true,
+
+      message:"User deleted successfully"
+
+    });
+
+
+
+  } catch(error) {
+
+
+    res.status(500).send({
+
+      success:false,
+
+      message:error.message
+
+    });
+
+
+  }
+
+
+};
+
+
+
+
+
+
+
+
+
+// Update user
+
+const updateUserControler = async (req,res)=>{
+
+
+  try{
+
+
+    const {id}=req.params;
+
+
+
+    const userData = await User.findByIdAndUpdate(
+
+      id,
+
+      req.body,
+
+      {
+        new:true,
+        runValidators:true
+      }
+
+    );
+
+
+
+    if(!userData){
+
+      return res.status(404).send({
+
+        success:false,
+
+        message:"User not found"
+
+      });
+
+    }
+
+
+
+    res.status(200).send({
+
+      success:true,
+
+      message:"User updated successfully",
+
+      userData
+
+    });
+
+
+
+  }catch(error){
+
+
+    res.status(500).send({
+
+      success:false,
+
+      message:error.message
+
+    });
+
+
+  }
+
+
+};
+
+
+
+
+
+
+
+module.exports = {
+
+  allUserControler,
+
+  singleUserControler,
+
+  deleteUserControler,
+
+  updateUserControler
+
+};
